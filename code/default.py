@@ -69,7 +69,7 @@ if not user_id or not session_id or reauth:
         # register
         headers = {'SDSEVO_USER_ID': responce['user_id'],
                    'SDSEVO_DEVICE_ID': device_id,
-                   'SDSEVO_SESSION_ID': responce['token']
+                   'SDSEVO_SESSION_ID': responce['token'],
         }
         client = my_gqlc(headers)
         res = client.execute(open(resources_path + '/createDevice.graphql').read(), variables={
@@ -141,23 +141,26 @@ def MainMenu():
 def indexLiveTV():
     variables={"channelListId":"59-6","channelAfterCursor":None,"currentTime":datetime.datetime.utcnow().isoformat()[0:23]+'Z',"logoWidth":76,"logoHeight":28,"thumbnailHeight":280,"backgroundHeight":780,"backgroundWidth":1920,"shortDescriptionMaxLength":0}
     res = client.execute(open(resources_path + '/liveTV.graphql').read(), variables=variables)
-    print('TTTTTTTTTTTTTTTTTTTEEEEEEEEEEEESSSSSSSSSSSSSSSSSSTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT')
+
     for channel in res['data']['channelList']['channels']['edges']:
-        currentEvent = channel['node']['currentEvent']['items'][0]
-        dt_start = to_datetime(currentEvent['start'])
-        dt_end = to_datetime(currentEvent['end'])
-        addLink(mode='playChannel', 
-                name=dt_start.strftime('%H:%M') + ' ' + dt_end.strftime('%H:%M') + ' - ' + currentEvent['title'],
-                iconimage=channel['node']['logo']['url'],
-                params={'channel_id': channel['node']['id']},
-                banner=channel['node']['logo']['url'],
-                poster=currentEvent['thumbnail']['url'],
-                fanart=currentEvent['backgroundImage']['url'],
-                plot=channel['node']['title'] + ' - ' + dt_start.strftime('%Y-%m-%d %H:%M') + ' ' + dt_end.strftime('%H:%M') + "\n" +
-                    currentEvent['title'] + "\n" + 
-                    currentEvent['eventMetadata']['genre']['title'] + "\n\n" +
-                    currentEvent['eventMetadata']['fullDescription']
-        )
+        if channel['node']['currentEvent']['items']:
+            currentEvent = channel['node']['currentEvent']['items'][0]
+            adult = currentEvent['parentalRating']['adult']
+            if not(adult) or (adult and adult_setting):
+                dt_start = to_datetime(currentEvent['start'])
+                dt_end = to_datetime(currentEvent['end'])
+                addLink(mode='playChannel', 
+                        name=dt_start.strftime('%H:%M') + ' ' + dt_end.strftime('%H:%M') + ' - ' + currentEvent['title'],
+                        iconimage=channel['node']['logo']['url'],
+                        params={'channel_id': channel['node']['id']},
+                        banner=channel['node']['logo']['url'],
+                        poster=currentEvent['thumbnail']['url'],
+                        fanart=currentEvent['backgroundImage']['url'],
+                        plot=channel['node']['title'] + ' - ' + dt_start.strftime('%Y-%m-%d %H:%M') + ' ' + dt_end.strftime('%H:%M') + "\n" +
+                            currentEvent['title'] + "\n" + 
+                            currentEvent['eventMetadata']['genre']['title'] + "\n\n" +
+                            currentEvent['eventMetadata']['fullDescription']
+                )
 
 # Списък с канали за преглед назад във времето
 def indexChannelList():
@@ -165,21 +168,24 @@ def indexChannelList():
     res = client.execute(open(resources_path + '/channelList.graphql').read(), variables=variables)
 
     for channel in res['data']['channelList']['channels']['edges']:
-        currentEvent = channel['node']['currentEvent']['items'][0]
-        dt_start = to_datetime(currentEvent['start'])
-        dt_end = to_datetime(currentEvent['end'])
-        addDir(mode='indexChannelGuide', 
-               name=channel['node']['title'] + ' - ' + currentEvent['title'],
-               iconimage=channel['node']['logo']['url'],
-               params={'channel_id': channel['node']['id']},
-               banner=channel['node']['logo']['url'],
-               poster=currentEvent['thumbnail']['url'],
-               fanart=currentEvent['backgroundImage']['url'],
-               plot=channel['node']['title'] + ' - ' + dt_start.strftime('%Y-%m-%d %H:%M') + ' ' + dt_end.strftime('%H:%M') + "\n" +
-                   currentEvent['title'] + "\n" + 
-                   currentEvent['eventMetadata']['genre']['title'] + "\n\n" +
-                   currentEvent['eventMetadata']['fullDescription']
-        )
+        if channel['node']['currentEvent']['items']:
+            currentEvent = channel['node']['currentEvent']['items'][0]
+            adult = currentEvent['parentalRating']['adult']
+            if not(adult) or (adult and adult_setting):
+                dt_start = to_datetime(currentEvent['start'])
+                dt_end = to_datetime(currentEvent['end'])
+                addDir(mode='indexChannelGuide', 
+                    name=channel['node']['title'] + ' - ' + currentEvent['title'],
+                    iconimage=channel['node']['logo']['url'],
+                    params={'channel_id': channel['node']['id']},
+                    banner=channel['node']['logo']['url'],
+                    poster=currentEvent['thumbnail']['url'],
+                    fanart=currentEvent['backgroundImage']['url'],
+                    plot=channel['node']['title'] + ' - ' + dt_start.strftime('%Y-%m-%d %H:%M') + ' ' + dt_end.strftime('%H:%M') + "\n" +
+                        currentEvent['title'] + "\n" + 
+                        currentEvent['eventMetadata']['genre']['title'] + "\n\n" +
+                        currentEvent['eventMetadata']['fullDescription']
+                )
 
 # Списък на програмата на даден канал
 def indexChannelGuide(args):
@@ -202,26 +208,29 @@ def indexChannelGuide(args):
     channel = res['data']['channel']
 
     for event in reversed(res['data']['channel']['events'][0]['items']):
-        dt_start = to_datetime(event['start'])
-        dt_end = to_datetime(event['end'])
-        addLink(mode='catchupEvent', 
-                name=dt_start.strftime('%H:%M') + ' ' + dt_end.strftime('%H:%M') + ' - ' + event['title'],
-                iconimage=event['thumbnail']['url'],
-                params={'event_id': event['id']},
-                banner=event['thumbnail']['url'],
-                poster=event['thumbnail']['url'],
-                fanart=event['backgroundImage']['url'],
-                plot=channel['title'] + ' - ' + dt_start.strftime('%Y-%m-%d %H:%M') + ' ' + dt_end.strftime('%H:%M') + "\n" +
-                  event['title'] + "\n" + 
-                  event['eventMetadata']['genre']['title'] + "\n\n" +
-                  event['eventMetadata']['fullDescription'],
-                context_items={'Добави в моя списък': 'favoriteItem,' + str(profile_id) + ',' + str(event['id'])}
-        )
+        adult = event['parentalRating']['adult']
+        if not(adult) or (adult and adult_setting):
+            dt_start = to_datetime(event['start'])
+            dt_end = to_datetime(event['end'])
+            addLink(mode='catchupEvent', 
+                    name=dt_start.strftime('%H:%M') + ' ' + dt_end.strftime('%H:%M') + ' - ' + event['title'],
+                    iconimage=event['thumbnail']['url'],
+                    params={'event_id': event['id']},
+                    banner=event['thumbnail']['url'],
+                    poster=event['thumbnail']['url'],
+                    fanart=event['backgroundImage']['url'],
+                    plot=channel['title'] + ' - ' + dt_start.strftime('%Y-%m-%d %H:%M') + ' ' + dt_end.strftime('%H:%M') + "\n" +
+                    event['title'] + "\n" + 
+                    event['eventMetadata']['genre']['title'] + "\n\n" +
+                    event['eventMetadata']['fullDescription'],
+                    context_items={'Добави в моя списък': 'favoriteItem,' + str(profile_id) + ',' + str(event['id'])}
+            )
     addDir('indexChannelGuide', ' << ' + start_date.strftime('%Y-%m-%d'), '', {'channel_id':channel_id, 'days': days + 1})
 
 # Пускане на канал в реално време
 def PlayChannel(args):
     channel_id = args.get('channel_id')[0]
+
     playback_session_id = xbmcaddon.Addon(id='plugin.video.mtelnow').getSetting('settings_playback_session_id')
     if playback_session_id:
         variables = {"input": {"sessionId": playback_session_id}}
@@ -230,7 +239,7 @@ def PlayChannel(args):
     variables = {"input": {"channelId": channel_id, "replaceSessionId": None}}
     res = client.execute(open(resources_path + '/playChannel.graphql').read(), variables)
     xbmcaddon.Addon(id='plugin.video.mtelnow').setSetting('settings_playback_session_id', res['data']['playChannel']['playbackInfo']['sessionId'])
-    playPath(url=res['data']['playChannel']['playbackInfo']['url'])
+    playPath(res['data']['playChannel']['playbackInfo']['url'])
 
 # Пускане на евент от миналото
 def catchupEvent(args):
@@ -244,7 +253,7 @@ def catchupEvent(args):
     variables = {"input": {"eventId": event_id, "replaceSessionId": None}}
     res = client.execute(open(resources_path + '/catchupEvent.graphql').read(), variables)
     xbmcaddon.Addon(id='plugin.video.mtelnow').setSetting('settings_playback_session_id', res['data']['catchupEvent']['playbackInfo']['sessionId'])
-    playPath(url=res['data']['catchupEvent']['playbackInfo']['url'])
+    playPath(res['data']['catchupEvent']['playbackInfo']['url'])
      
 # За теб секцията. Не е довършена, защото няма play
 def indexVOD():
@@ -291,14 +300,13 @@ def indexVODFolder(args):
                   + fullDescription
         )
 
-def playPath(url, title = "", plot=""):
+def playPath(path, title = "", plot=""):
     PROTOCOL = 'mpd'
     DRM = 'com.widevine.alpha'
 
     is_helper = inputstreamhelper.Helper(PROTOCOL, drm=DRM)
     if is_helper.check_inputstream():
-        video_url = url
-        li = xbmcgui.ListItem(path = video_url)
+        li = xbmcgui.ListItem(path=path)
         headers = 'verifypeer=false'
         li.setProperty('inputstreamaddon', is_helper.inputstream_addon)
         li.setProperty('inputstream.adaptive.manifest_type', PROTOCOL)
@@ -317,7 +325,6 @@ def playPath(url, title = "", plot=""):
             li.setInfo( type="Video", infoLabels={ "Title": title, "plot": plot})
         try:
             xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, li)
-
         except:
             xbmc.executebuiltin("Notification('Грешка','Видеото липсва на сървъра!')")
  
@@ -342,22 +349,24 @@ def indexMyLibrary():
     for folder in res['data']['myLibrary']['folders']['edges']:
         for item in folder['node']['firstItems']['edges']:
             event = item['node']
-            channel = event['channel']
-            dt_start = to_datetime(event['start'])
-            dt_end = to_datetime(event['end'])
-            addLink(mode='catchupEvent', 
-                    name=channel['title'] + dt_start.strftime('%Y-%m-%d %H:%M') + ' ' + dt_end.strftime('%H:%M') + ' - ' + event['title'],
-                    iconimage=event['thumbnail']['url'],
-                    params={'event_id': event['id']},
-                    banner=event['thumbnail']['url'],
-                    poster=event['thumbnail']['url'],
-                    #fanart=event['backgroundImage']['url'],
-                    plot=channel['title'] + ' - ' + dt_start.strftime('%Y-%m-%d %H:%M') + ' ' + dt_end.strftime('%H:%M') + "\n" +
-                      event['title'] + "\n" + 
-                      event['eventMetadata']['genre']['title'] + "\n\n" +
-                      event['eventMetadata']['fullDescription'],
-                    context_items={'Премахване от моя списък': 'unfavoriteItem,' + str(profile_id) + ',' + str(event['id'])}
-            )
+            adult = event['parentalRating']['adult']
+            if not(adult) or (adult and adult_setting):
+                channel = event['channel']
+                dt_start = to_datetime(event['start'])
+                dt_end = to_datetime(event['end'])
+                addLink(mode='catchupEvent', 
+                        name=channel['title'] + dt_start.strftime('%Y-%m-%d %H:%M') + ' ' + dt_end.strftime('%H:%M') + ' - ' + event['title'],
+                        iconimage=event['thumbnail']['url'],
+                        params={'event_id': event['id']},
+                        banner=event['thumbnail']['url'],
+                        poster=event['thumbnail']['url'],
+                        #fanart=event['backgroundImage']['url'],
+                        plot=channel['title'] + ' - ' + dt_start.strftime('%Y-%m-%d %H:%M') + ' ' + dt_end.strftime('%H:%M') + "\n" +
+                        event['title'] + "\n" + 
+                        event['eventMetadata']['genre']['title'] + "\n\n" +
+                        event['eventMetadata']['fullDescription'],
+                        context_items={'Премахване от моя списък': 'unfavoriteItem,' + str(profile_id) + ',' + str(event['id'])}
+                )
 
 #Модул за добавяне на отделно заглавие и неговите атрибути към съдържанието на показваната в Kodi директория
 def addLink(mode, name, iconimage, params={}, fanart="", plot="", context_items = {}, banner="", poster="", isFolder=False, isPlayable=True):
