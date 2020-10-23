@@ -2,10 +2,10 @@
 <addon id="plugin.video.mtelnow"
        name="A1 Xplore TV GO"
        version="2.0.0"
-       provider-name="Johnie">
+       provider-name="Johnie,lukavia, Fireblade">
   <requires>
     <import addon="xbmc.python" version="2.1.0"/>
-    <import addon="inputstream.adaptive" version="2.1.0"/>
+    <import addon="inputstream.adaptive" version="2.3.18"/>
     <import addon="script.module.inputstreamhelper" version="0.3.3"/>
     <import addon="script.module.pytz"/>
   </requires>
