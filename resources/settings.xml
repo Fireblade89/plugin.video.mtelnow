@@ -7,6 +7,8 @@
         <setting label="Password" type="text" id="settings_password" default="" option="hidden" enable="!eq(-1,)"/>
         <setting label="Max. Bandwidth (Bit/s)" id="settings_max_bandwidth" type="number" default=""/>
         <setting label="Adult" type="bool" id="settings_adult" default="True"/>
+        <setting label="Create m3u playlist" type="bool" id="create_m3u_playlist" default="False"/>
+        <setting label="Folder for playlist" type="folder" id="folder" default="" option="writeable" visible="eq(-1,true)"/>
         <setting id="settings_user_id" type="number" default="" visible="False"/>
         <setting id="settings_session_id" type="text" default="" visible="False"/>
         <setting id="settings_playback_session_id" type="text" defaults="" visible="False"/>
