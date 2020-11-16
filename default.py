@@ -6,7 +6,7 @@ __all__ = ['PY2']
 PY2 = sys.version_info[0] == 2
 
 #import os
-
+import playutils as putils	
 if PY2:
     import urlparse
     import urllib
@@ -156,7 +156,7 @@ def indexLiveTV():
                     query = {'mode': 'playChannel', 'profile_id': profile_id, 'timeout': timeout, 'device_id': device_id}
                     query.update({'channel_id': channel['node']['id']})
                     url = build_url(query)
-                    pl = pl + '#EXTINF:-1 tvg-logo="http://tuborgko.heliohost.org/tvlogos/%s.png",%s ⟲¹\n%s|verifypeer=false\n' % (channel['node']['title'].replace(" ", "_").lower(),channel['node']['title'],url)
+                    pl = pl + '#EXTINF:-1 tvg-logo="http://tuborgko.heliohost.org/tvlogos/%s.png",%s\n%s\n' % (channel['node']['title'].replace(" ", "_").lower(),channel['node']['title'],url)
                 addLink(mode='playChannel',
                         name=dt_start.strftime('%H:%M') + ' ' + dt_end.strftime('%H:%M') + ' - ' + currentEvent['title'],
                         iconimage=channel['node']['logo']['url'],
@@ -334,10 +334,13 @@ def playPath(path, title = "", plot=""):
         li.setProperty('inputstream.adaptive.license_key', dt_custom_data + '||R{SSM}|')
         if title and plot:
             li.setInfo( type="Video", infoLabels={ "Title": title, "plot": plot})
-        try:
-            xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, li)
-        except:
-            xbmc.executebuiltin("Notification('Грешка','Видеото липсва на сървъра!')")
+        playutils = putils.PlayUtils(self.item)
+        playurl = playutils.getPlayUrl()
+        if not playurl:
+            try:
+                xbmcplugin.setResolvedUrl(int(sys.argv[1]), False, li)
+            except:
+                xbmc.executebuiltin("Notification('Грешка','Видеото липсва на сървъра!')")
  
 # Моята секция / Любими
 def indexMyLibrary():
