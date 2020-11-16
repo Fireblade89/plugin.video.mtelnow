@@ -156,8 +156,8 @@ def indexLiveTV():
                     query = {'mode': 'playChannel', 'profile_id': profile_id, 'timeout': timeout, 'device_id': device_id}
                     query.update({'channel_id': channel['node']['id']})
                     url = build_url(query)
-                    pl = pl + '#EXTINF:-1 tvg-logo="http://tuborgko.heliohost.org/tvlogos/%s.png" tvg-id="%s" tvg-name="%s",%s\n%s\n' % (channel['node']['title'].replace(" ", "_"), channel['node']['id'], channel['node']['title'].replace(" ", "_"),channel['node']['title'],url)
-                addLink(mode='playChannel', 
+                    pl = pl + '#EXTINF:-1 tvg-logo="http://tuborgko.heliohost.org/tvlogos/%s.png",%s ⟲¹\n%s|verifypeer=false\n' % (channel['node']['title'].replace(" ", "_").lower(),channel['node']['title'],url)
+                addLink(mode='playChannel',
                         name=dt_start.strftime('%H:%M') + ' ' + dt_end.strftime('%H:%M') + ' - ' + currentEvent['title'],
                         iconimage=channel['node']['logo']['url'],
                         params={'channel_id': channel['node']['id']},
