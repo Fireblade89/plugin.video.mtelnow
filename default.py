@@ -165,8 +165,7 @@ def indexLiveTV():
                         poster=currentEvent['thumbnail']['url'],
                         fanart=currentEvent['backgroundImage']['url'],
                         plot=channel['node']['title'] + ' - ' + dt_start.strftime('%Y-%m-%d %H:%M') + ' ' + dt_end.strftime('%H:%M') + "\n" +
-                            currentEvent['title'] + "\n" + 
-                            currentEvent['eventMetadata']['genre']['title'] + "\n\n" +
+                            currentEvent['title'] + "\n" +
                             currentEvent['eventMetadata']['fullDescription']
                 )
     if ism3uGenerateEnabled:
@@ -373,8 +372,7 @@ def indexMyLibrary():
                         poster=event['thumbnail']['url'],
                         #fanart=event['backgroundImage']['url'],
                         plot=channel['title'] + ' - ' + dt_start.strftime('%Y-%m-%d %H:%M') + ' ' + dt_end.strftime('%H:%M') + "\n" +
-                        event['title'] + "\n" + 
-                        event['eventMetadata']['genre']['title'] + "\n\n" +
+                        event['title'] + "\n" +
                         event['eventMetadata']['fullDescription'],
                         context_items={'Премахване от моя списък': 'unfavoriteItem,' + str(profile_id) + ',' + str(event['id'])}
                 )
