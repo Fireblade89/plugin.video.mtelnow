@@ -36,8 +36,8 @@ resources_path = xbmcaddon.Addon().getAddonInfo('path') + '/resources'
 
 def build_url(query):
     if PY2:
-        return base_url + '?' + urllib.urlencode(query) + '&verifyPeer%3Dfalse'
-    return base_url + '?' + urllib.parse.urlencode(query) + '&verifyPeer%3Dfalse'
+        return base_url + '?' + urllib.urlencode(query)
+    return base_url + '?' + urllib.parse.urlencode(query)
 
 if not username or not password or not xbmcaddon.Addon():
     xbmcaddon.Addon().openSettings()
