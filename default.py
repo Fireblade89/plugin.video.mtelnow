@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 #Библиотеки, които използват python и Kodi в тази приставка
+import os
 import sys
 __all__ = ['PY2']
 PY2 = sys.version_info[0] == 2
@@ -35,8 +36,8 @@ resources_path = xbmcaddon.Addon().getAddonInfo('path') + '/resources'
 
 def build_url(query):
     if PY2:
-        return base_url + '?' + urllib.urlencode(query)
-    return base_url + '?' + urllib.parse.urlencode(query)
+        return base_url + '?' + urllib.urlencode(query) + '&verifyPeer%3Dfalse'
+    return base_url + '?' + urllib.parse.urlencode(query) + '&verifyPeer%3Dfalse'
 
 if not username or not password or not xbmcaddon.Addon():
     xbmcaddon.Addon().openSettings()
@@ -141,6 +142,8 @@ def MainMenu():
 def indexLiveTV():
     variables={"channelListId":"59-6","channelAfterCursor":None,"currentTime":datetime.datetime.utcnow().isoformat()[0:23]+'Z',"logoWidth":76,"logoHeight":28,"thumbnailHeight":280,"backgroundHeight":780,"backgroundWidth":1920,"shortDescriptionMaxLength":0}
     res = client.execute(open(resources_path + '/liveTV.graphql').read(), variables=variables)
+    ism3uGenerateEnabled = xbmcaddon.Addon(id='plugin.video.mtelnow').getSetting('create_m3u_playlist') and not xbmcaddon.Addon(id='plugin.video.mtelnow').getSetting('folder') == ""
+    pl = u'#EXTM3U\n'
 
     for channel in res['data']['channelList']['channels']['edges']:
         if channel['node']['currentEvent']['items']:
@@ -149,6 +152,11 @@ def indexLiveTV():
             if not(adult) or (adult and adult_setting):
                 dt_start = to_datetime(currentEvent['start'])
                 dt_end = to_datetime(currentEvent['end'])
+                if ism3uGenerateEnabled:
+                    query = {'mode': 'playChannel', 'profile_id': profile_id, 'timeout': timeout, 'device_id': device_id}
+                    query.update({'channel_id': channel['node']['id']})
+                    url = build_url(query)
+                    pl = pl + '#EXTINF:-1 tvg-logo="%s" tvg-id="%s",%s\n%s\n' % (channel['node']['logo']['url'], channel['node']['id'], channel['node']['title'],url)
                 addLink(mode='playChannel', 
                         name=dt_start.strftime('%H:%M') + ' ' + dt_end.strftime('%H:%M') + ' - ' + currentEvent['title'],
                         iconimage=channel['node']['logo']['url'],
@@ -157,10 +165,13 @@ def indexLiveTV():
                         poster=currentEvent['thumbnail']['url'],
                         fanart=currentEvent['backgroundImage']['url'],
                         plot=channel['node']['title'] + ' - ' + dt_start.strftime('%Y-%m-%d %H:%M') + ' ' + dt_end.strftime('%H:%M') + "\n" +
-                            currentEvent['title'] + "\n" + 
-                            currentEvent['eventMetadata']['genre']['title'] + "\n\n" +
+                            currentEvent['title'] + "\n" +
                             currentEvent['eventMetadata']['fullDescription']
                 )
+    if ism3uGenerateEnabled:
+        f_m3u =  open(os.path.join(xbmcaddon.Addon(id='plugin.video.mtelnow').getSetting('folder'), '', 'a1.m3u'), 'wb+')
+        f_m3u.write(pl.encode('UTF-8', 'replace'))
+        f_m3u.close()
 
 # Списък с канали за преглед назад във времето
 def indexChannelList():
@@ -362,8 +373,7 @@ def indexMyLibrary():
                         poster=event['thumbnail']['url'],
                         #fanart=event['backgroundImage']['url'],
                         plot=channel['title'] + ' - ' + dt_start.strftime('%Y-%m-%d %H:%M') + ' ' + dt_end.strftime('%H:%M') + "\n" +
-                        event['title'] + "\n" + 
-                        event['eventMetadata']['genre']['title'] + "\n\n" +
+                        event['title'] + "\n" +
                         event['eventMetadata']['fullDescription'],
                         context_items={'Премахване от моя списък': 'unfavoriteItem,' + str(profile_id) + ',' + str(event['id'])}
                 )
