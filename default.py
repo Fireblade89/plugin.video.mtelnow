@@ -308,18 +308,18 @@ def playPath(path, title = "", plot=""):
     if is_helper.check_inputstream():
         li = xbmcgui.ListItem(path=path)
         headers = 'verifypeer=false'
-        li.setProperty('inputstreamaddon', is_helper.inputstream_addon)
-        li.setProperty('inputstream.adaptive.manifest_type', PROTOCOL)
-        li.setProperty('inputstream.adaptive.license_type', DRM)
-        li.setProperty('inputstream.adaptive.stream_headers', headers)
+        li.setProperty('#KODIPROP:inputstream', 'inputstream.adaptive')
+        li.setProperty('#KODIPROP:inputstream.adaptive.manifest_type', PROTOCOL)
+        li.setProperty('#KODIPROP:inputstream.adaptive.license_type', DRM)
+        li.setProperty('#KODIPROP:inputstream.adaptive.stream_headers', headers)
         if max_bandwidth:
-          li.setProperty('inputstream.adaptive.max_bandwidth', max_bandwidth)
+          li.setProperty('#KODIPROP:inputstream.adaptive.max_bandwidth', max_bandwidth)
         if PY2:
           device_hash = base64.b64encode(device_id)
         else:
           device_hash = base64.b64encode(device_id.encode()).decode()
         dt_custom_data = 'https://wvps.a1xploretv.bg:8063/?deviceId=' + device_hash
-        li.setProperty('inputstream.adaptive.license_key', dt_custom_data + '||R{SSM}|')
+        li.setProperty('#KODIPROP:inputstream.adaptive.license_key', dt_custom_data + '||R{SSM}|')
         #li.setMimeType('application/dash+xml')
         if title and plot:
             li.setInfo( type="Video", infoLabels={ "Title": title, "plot": plot})
@@ -378,7 +378,7 @@ def addLink(mode, name, iconimage, params={}, fanart="", plot="", context_items 
         banner = fanart
     if not poster:
         poster = fanart
-    li = xbmcgui.ListItem(name, iconImage=iconimage, thumbnailImage=iconimage)
+    li = xbmcgui.ListItem(name)
     li.setArt({ 'thumb': iconimage,'poster': poster, 'banner' : banner, 'fanart': fanart })
     li.setInfo( type="Video", infoLabels={"Title": name, "plot": plot})
     if isPlayable:
